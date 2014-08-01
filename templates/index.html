@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Commitz</title>
+
+    <link href="static/bootstrap-3.2.0-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/jumbotron-narrow.css" rel="stylesheet">
+    <link href="static/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header">
+        <ul class="nav nav-pills pull-right">
+          <li class="active"><a href="#">Home</a></li>
+          <li><a onclick="alert('What more is there to know?')" href="#">About</a></li>
+          <li><a target="_blank" href="https://twitter.com/ksikkaa">Contact</a></li>
+        </ul>
+        <h3 class="text-muted">Commitz</h3>
+      </div>
+
+      <div class="jumbotron">
+        <h2>Enter your Github username</h2>
+        <br>
+        <div style="margin:0 auto; max-width: 28em">
+
+            <form id="github_handle_form" class="form-inline" style="text-align:left" method="get" action="/login" role="form">
+              <label class="sr-only" for="twitter_handle_input">Enter your twitter handle:</label>
+              <div class="input-group">
+                <span class="input-group-addon">@</span>
+                <input autofocus type="text" class="input-lg form-control" style="max-width:10em" id="github_handle_input" placeholder="Your username">
+              </div>
+              <button type="submit" class="btn btn-lg btn-success" role="button">Begin!</button>
+            </form>
+        </div>
+      </div>
+
+
+      <div class="footer">
+        <p>&copy; Karan Sikka 2014</p>
+      </div>
+
+    </div> <!-- /container -->
+
+
+    <script src="static/jquery-1.11.1.min.js"></script>
+    <script src="static/underscore-min.js"></script>
+    <script src="static/list-1.1.1.min.js"></script>
+    <script src="static/main.js"></script>
+    <script src="static/bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
+  </body>
+</html>
+
