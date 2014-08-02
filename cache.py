@@ -1,4 +1,5 @@
 """
+@ksikka
 
 Modified from https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
 
@@ -29,24 +30,27 @@ class memoized(object):
    If called later with the same arguments, the cached value is returned
    (not reevaluated).
    '''
-   def __init__(self, db_name):
+   def __init__(self, db_name, arg_index=0):
       self.db_name = db_name
+      self.arg_index = arg_index
 
    def __call__(self, func):
-      """Assumes the key is the first argument, and there's only one argument"""
-      def wrappee(arg):
-          key = arg
+      def wrappee(*args, **kwargs):
+          key = args[self.arg_index]
 
           try:
              cache = self.cache
           except AttributeError:
-             self.cache = couch[self.db_name]
+             try:
+                self.cache = couch[self.db_name]
+             except couchdb.http.ResourceNotFound:
+                self.cache = couch.create(self.db_name)
              cache = self.cache
 
           if key in cache:
              return cache[key]
           else:
-             value = func(arg)
+             value = func(*args, **kwargs)
              value['cache_updated'] = int(time.time())
              value.update({'_id': key})
              cache.save(value)
