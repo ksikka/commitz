@@ -1,11 +1,13 @@
 import json
 from flask import Flask, g, session, redirect, request, send_from_directory, render_template
 from flask.json import jsonify as send_json
-from githubgetter import GitHubAgent as GitHub
 
 
 app = Flask(__name__)
 app.config.update(json.load(open('config.json')))
+
+from githubgetter import GitHubAgent as GitHub
+github = GitHub(app)
 
 @app.route('/')
 def index():
@@ -14,22 +16,17 @@ def index():
         return r
     return render_template('index.html')
 
-
 """
-Source: http://github-flask.readthedocs.org/en/latest/
+User session management
 """
-github = GitHub(app)
-
-"""
-User session management # todo replace with couchdb
-"""
-# keyed on username
-users = {}
 class User(object):
 
     def __init__(self, username, access_token):
         self.username = username # used in session
         self.access_token = access_token
+
+# keyed on username
+users = {} # TODO replace with couchdb for persistence
 
 @app.before_request
 def before_request():
@@ -109,51 +106,16 @@ def logout():
     users.pop(username, None)
     return redirect('/')
 
-
-@app.route('/user')
-def user():
+"""
+These are only used as tests for githubgetter.py
+"""
+from data_gen import get_all_data as _get_all_data
+@app.route('/alldata')
+def alldata():
     r = redirect_if_not_logged_in()
     if r:
         return r
-    return str(github.get('user'))
-
-
-@app.route('/repos')
-def repos():
-    r = redirect_if_not_logged_in()
-    if r:
-        return r
-    return send_json(github.get_all_repositories(g.user.username))
-
-
-@app.route('/stats')
-def stats():
-    r = redirect_if_not_logged_in()
-    if r:
-        return r
-    repos = github.get_all_repositories(g.user.username)['data']
-
-    stats = {}
-    for repo in repos:
-        repo_name = repo['full_name']
-        stats[repo_name] = github.get_stats_for_repository(repo_name)['data']
-    return send_json(stats)
-
-
-@app.route('/commitz')
-def commitz():
-    r = redirect_if_not_logged_in()
-    if r:
-        return r
-
-    repos = github.get_all_repositories(g.user.username)['data']
-
-    commits = {}
-    for repo in repos:
-        repo_name = repo['full_name']
-        commits[repo_name] = github.get_commits_for_repository(repo_name)['data']
-
-    return send_json(commits)
+    return send_json(_get_all_data(github, g.user.username))
 
 
 if __name__ == "__main__":
