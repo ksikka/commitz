@@ -45,11 +45,16 @@ def before_request():
             session.pop('username', None)
 
         else:
-            g.user.getdata()
+            g.user.getdata(github)
 
-def redirect_if_logged_in():
+def redirect_if_logged_in(url=None):
     if g.user is not None:
-        return redirect('/g/%s' % g.user.username)
+        # return redirect('/g/%s' % g.user.username)
+        return redirect('/commitz')
+
+def redirect_if_not_logged_in():
+    if g.user is None:
+        return redirect('/')
 
 """
 Required for github-flask ext.
@@ -77,7 +82,7 @@ def authorized(access_token):
     uid = getuid()
     user = User(uid, access_token)
     g.user = user
-    user.getdata()
+    user.getdata(github)
     existing_user = users.get(user.username)
     if existing_user:
         user = existing_user
@@ -89,6 +94,7 @@ def authorized(access_token):
     session['username'] = user.username
 
     return redirect_if_logged_in()
+
 
 @app.route('/login')
 def login():
@@ -107,9 +113,33 @@ def logout():
 
 @app.route('/user')
 def user():
-    if session.get('username', None) is None:
-        return redirect('/login')
+    r = redirect_if_not_logged_in()
+    if r:
+        return r
     return str(github.get('user'))
+
+
+@app.route('/repos')
+def repos():
+    r = redirect_if_not_logged_in()
+    if r:
+        return r
+    return send_json(g.user.get_all_repositories(github))
+
+@app.route('/commitz')
+def commitz():
+    r = redirect_if_not_logged_in()
+    if r:
+        return r
+
+    repos = g.user.get_all_repositories(github)['data']
+
+    commits = {}
+    for repo in repos:
+        repo_name = repo['full_name']
+        commits[repo_name] = github.get_commits_for_repository(repo_name)['data']
+
+    return send_json(commits)
 
 
 if __name__ == "__main__":
