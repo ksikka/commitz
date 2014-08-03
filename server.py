@@ -9,12 +9,23 @@ app.config.update(json.load(open('config.json')))
 from githubgetter import GitHubAgent as GitHub
 github = GitHub(app)
 
+from data_gen import get_all_data
+
 @app.route('/')
 def index():
     r = redirect_if_logged_in()
     if r:
         return r
     return render_template('index.html')
+
+@app.route('/g/<string:username>')
+def user(username):
+    r = redirect_if_not_logged_in()
+    if r:
+        return r
+
+    data = get_all_data(github, g.user.username)
+    return render_template('user.html', data=json.dumps(data))
 
 """
 User session management
@@ -105,16 +116,6 @@ def logout():
     users.pop(username, None)
     return redirect('/')
 
-"""
-These are only used as tests for githubgetter.py
-"""
-from data_gen import get_all_data as _get_all_data
-@app.route('/alldata')
-def alldata():
-    r = redirect_if_not_logged_in()
-    if r:
-        return r
-    return send_json(_get_all_data(github, g.user.username))
 
 
 if __name__ == "__main__":
