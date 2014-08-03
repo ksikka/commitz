@@ -1,6 +1,11 @@
 <html>
-    <head></head>
+    <head>
+        <title>Hello</title>
+    </head>
     <body>
-        <p>{{data}}</p>
+        Welcome to a page full of data-driven insights.
+        <script>
+            var data = {{data|safe}};
+        </script>
     </body>
 </html>
