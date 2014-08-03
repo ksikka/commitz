@@ -1,11 +1,66 @@
 <html>
     <head>
-        <title>Hello</title>
+        <title>{{ data.userdata.login }}'s Programming Profile</title>
+        <link rel="stylesheet" href="/static/pure-min.css">
+        <link rel="stylesheet" href="/static/userpage.css">
     </head>
     <body>
-        Welcome to a page full of data-driven insights.
+        <div id="main">
+            <div class="heading">
+                <h1>Karan Sikka</h1>
+                <div class="tabs">
+                    <a href="#overview"><span class="tab">Overview</span></a>
+                    <a href="#projects"><span class="tab">Projects</span></a>
+                    <a href="#contributions"><span class="tab">Contributions</span></a>
+                </div>
+            </div>
+            <div class="overview">
+                <p>{{ data.userdata.name }} has contributed to {{ data.overview.num_repos_contributed_to }} source code repositories,
+                with over {{ data.overview.total_commits }} commits,
+                over the span of {{ data.overview.timespan }} years.
+                </p>
+
+                <canvas id="overview-repo-commits" width="400" height="400"></canvas>
+
+            </div>
+            <div class="projects">
+            </div>
+            <div class="contributions">
+            </div>
+        </div>
+        <script src="/static/Chart.min.js"></script>
+        <script src="/static/underscore-min.js"></script>
         <script>
-            var data = {{data|safe}};
+            var data = {{ jsondata | safe }};
+
+            // Get the context of the canvas element we want to select
+            var ctx = document.getElementById("overview-repo-commits").getContext("2d");
+
+            var chart1data = [];
+            var colors = [
+                ['#41A85F','#61BD6D'],
+                ['#00A885','#1ABC9C'],
+                ['#3D8EB9','#54ACD2'],
+                ['#2969B0','#2C82C9'],
+                ['#553982','#9365B8'],
+                ['#28324E','#475577'],
+                ['#FAC51C','#F7DA64'],
+                ['#F37934','#FBA026'],
+                ['#D14841','#EB6B56'],
+                ['#B8312F','#E25041'],
+                ['#75706B','#A38F84'],
+                ['#D1D5D8','#CDCDCD']
+            ];
+            var chart1Data = _.map(data.summaries, function(repoName, summary) {
+                return { value: summary.contrib_dist[data.userdata.login] || 0,
+                         color: null,
+                         highlight: null,
+                         label: repoName
+                };
+            });
+            // value, color, highlight, label
+            var myNewChart = new Chart(ctx).Pie(chart1Data);
+
         </script>
     </body>
 </html>

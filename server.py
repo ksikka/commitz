@@ -25,7 +25,7 @@ def user(username):
         return r
 
     data = get_all_data(github, g.user.username)
-    return render_template('user.html', data=json.dumps(data))
+    return render_template('user.html', data=data, jsondata=json.dumps(data))
 
 """
 User session management

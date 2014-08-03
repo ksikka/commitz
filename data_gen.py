@@ -82,9 +82,20 @@ def get_all_data(github, username):
             if key.endswith('_url'):
                 del repo['owner'][key]
 
+    overview = {}
+    overview['num_repos_contributed_to'] = 0
+    overview['total_commits'] = 0
+    for repo_name, summary in summaries.items():
+        if summary['last_commit_date'] is not None:
+            overview['num_repos_contributed_to'] += 1
+        overview['total_commits'] += summary['contrib_dist'].get(username, 0)
+
+
+    overview['timespan'] = 1 + 2014 - int(userdata['created_at'][:4]) # ie "2011-10-28T01:16:33Z" => 2011
 
     data['repos'] = repos
     data['summaries'] = summaries
+    data['overview'] = overview
 
     return data
 
