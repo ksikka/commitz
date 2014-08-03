@@ -44,8 +44,7 @@ def before_request():
 
 def redirect_if_logged_in(url=None):
     if g.user is not None:
-        # return redirect('/g/%s' % g.user.username)
-        return redirect('/commitz')
+        return redirect('/g/%s' % g.user.username)
 
 def redirect_if_not_logged_in():
     if g.user is None:

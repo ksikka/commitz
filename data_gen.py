@@ -1,6 +1,6 @@
 import json
 
-def get_all_data(github, username):
+def get_github_data(github, username):
     userdata = github.get_user_cached(username)
 
     assert userdata is not None, "Plz run webserver, authenticate, and go to /alldata route to cache these values."
@@ -58,6 +58,36 @@ def repo_summary(userdata, repo, repo_contributors, repo_commits):
 
     return data
 
+def get_all_data(github, username):
+    github_data = get_github_data(github, username)
+
+    data = {}
+    userdata = github_data['userdata']
+
+    data['userdata'] = userdata
+
+    summaries = {}
+    repos = github_data['repos']
+    for repo in repos:
+        repo_name = repo['full_name']
+        repo_contributors = github_data['stats'][repo_name]
+        repo_commits = github_data['commits'][repo_name]
+        summaries[repo_name] = repo_summary(userdata, repo, repo_contributors, repo_commits)
+
+        # delete all the url crap.
+        for key in repo.keys():
+            if key.endswith('_url'):
+                del repo[key]
+        for key in repo['owner'].keys():
+            if key.endswith('_url'):
+                del repo['owner'][key]
+
+
+    data['repos'] = repos
+    data['summaries'] = summaries
+
+    return data
+
 
 
 if __name__ == '__main__':
@@ -70,15 +100,12 @@ if __name__ == '__main__':
     github = GitHub(None)
     username = 'ksikka'
 
-    data = get_all_data(github, username)
-    with open('sample_data.json', 'w') as f:
-        json.dump(data, f, indent=2)
+    # tests get_github_data
+    all_data = get_github_data(github, username)
+    with open('test_github_data.json', 'w') as f:
+        json.dump(all_data, f, indent=2)
 
-    userdata = data['userdata']
-    summaries = {}
-    for repo in data['repos']:
-        repo_name = repo['full_name']
-        repo_contributors = data['stats'][repo_name]
-        repo_commits = data['commits'][repo_name]
-        summaries[repo_name] = repo_summary(userdata, repo, repo_contributors, repo_commits)
-    print json.dumps(summaries, indent=4)
+    # tests get_all_data
+    final_data = get_all_data(github, username)
+    with open('test_final_data.json', 'w') as f:
+        json.dump(final_data, f, indent=2)
