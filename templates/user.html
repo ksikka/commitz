@@ -20,7 +20,34 @@
                 over the span of {{ data.overview.timespan }} years.
                 </p>
 
-                <canvas id="overview-repo-commits" width="400" height="400"></canvas>
+                <p>
+                Top repositories by number of commits:
+                </p>
+                <!-- What are the repos I've worked on the most? -->
+                <!-- reposByCommitCount -->
+                <div class="chart-container">
+                    <canvas id="overview-repo-commits" width="250" height="250"></canvas>
+                    <div class="chart-sidekick">
+                        <div id="overview-repo-commits-list">
+                        </div>
+                    </div>
+                </div>
+
+                <p>
+                Top repositories by percent commit contribution:
+                </p>
+                <!-- What are the repos do I have high contribution? -->
+                <!-- reposByContributionPercent -->
+                <div class="chart-container">
+                    <canvas id="overview-repo-contribution" width="250" height="250"></canvas>
+                    <div class="chart-sidekick">
+                        <div id="overview-repo-contribution-list">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline of my repos -->
+                <!-- reposByLastCommitDate -->
 
             </div>
             <div class="projects">
@@ -36,6 +63,7 @@
 
             // Get the context of the canvas element we want to select
             var ctx = document.getElementById("overview-repo-commits").getContext("2d");
+            var ctx2 = document.getElementById("overview-repo-contribution").getContext("2d");
 
             var chart1data = [];
             var colors = [
@@ -60,15 +88,36 @@
                 _last_color_index %= colors.length;
                 return cArr;
             };
-            var getRepoCommitsChartData = function() {
+            var getRepoCommitsChartData = function(byContrib) {
+                var metricGetter;
+                var total = 0;
+                if (byContrib) {
+                    metricGetter = function(summary) {
+                        var totalCommits = 0;
+                        _.each(summary.contrib_dist, function(numCommits) { totalCommits += numCommits; })
+                        var commitFrac;
+                        if (totalCommits === 0) {
+                            commitFrac = 0;
+                        } else {
+                            commitFrac = (summary.contrib_dist[data.userdata.login] || 0) / totalCommits;
+                        }
+                        return commitFrac.toFixed(2) * 100;
+                    };
+                    _.each(data.summaries, function(s) { total += metricGetter(s);});
+                } else {
+                    metricGetter = function(summary) {
+                        return summary.contrib_dist[data.userdata.login] || 0;
+                    };
+                    total = data.overview.total_commits;
+                }
                 // sort it descending on number of commits
-                var sortedSummaryPairs = _.sortBy(_.pairs(data.summaries), function(kvpair) {return (kvpair[1].contrib_dist[data.userdata.login] || 0) * -1;});
+                var sortedSummaryPairs = _.sortBy(_.pairs(data.summaries), function(kvpair) {return (metricGetter(kvpair[1])) * -1;});
                 var lastIndex;
 
                 var firstRepoTooSmall = _.find(sortedSummaryPairs, function(x) {
                     var summary = x[1];
-                    var numCommits = summary.contrib_dist[data.userdata.login];
-                    return (numCommits / data.overview.total_commits) < 0.01;
+                    var numCommits = metricGetter(summary);
+                    return (numCommits / total) < 0.01;
                 })
 
                 var shortSummaryPairs;
@@ -89,8 +138,7 @@
                     var y = nextColor();
                     var c1 = y[0],
                         c2 = y[1];
-                    console.log(summary.contrib_dist[data.userdata.login]);
-                    return { value: (summary.contrib_dist[data.userdata.login] || 0),
+                    return { value: metricGetter(summary),
                              color: c1,
                              highlight: c2,
                              label: repoName
@@ -101,7 +149,7 @@
                     var y = nextColor();
                     var c1 = y[0],
                         c2 = y[1];
-                    var remainingCommits = data.overview.total_commits - _.reduce(shortSummaryPairs, function(memo, pair) { return memo + pair[1].contrib_dist[data.userdata.login] }, 0);
+                    var remainingCommits = total - _.reduce(shortSummaryPairs, function(memo, pair) { return memo + metricGetter(pair[1]) }, 0);
                     chart1Data.push({
                              value: remainingCommits,
                              color: c1,
@@ -113,6 +161,12 @@
             }
 
             var myNewChart = new Chart(ctx).Pie(getRepoCommitsChartData());
+            var legendStr = myNewChart.generateLegend();
+            $("#overview-repo-commits-list").html(legendStr);
+
+            var myNewChart2 = new Chart(ctx2).Pie(getRepoCommitsChartData(true));
+            var legendStr2 = myNewChart2.generateLegend();
+            $("#overview-repo-contribution-list").html(legendStr2);
 
         </script>
     </body>
