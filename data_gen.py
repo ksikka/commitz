@@ -66,13 +66,17 @@ def get_all_data(github, username):
 
     data['userdata'] = userdata
 
-    summaries = {}
+    overview = {}
+    overview['num_repos_contributed_to'] = 0
+    overview['total_commits'] = 0
+
     repos = github_data['repos']
     for repo in repos:
         repo_name = repo['full_name']
         repo_contributors = github_data['stats'][repo_name]
         repo_commits = github_data['commits'][repo_name]
-        summaries[repo_name] = repo_summary(userdata, repo, repo_contributors, repo_commits)
+        summary = repo_summary(userdata, repo, repo_contributors, repo_commits)
+        repo['summary'] = summary
 
         # delete all the url crap.
         for key in repo.keys():
@@ -82,19 +86,17 @@ def get_all_data(github, username):
             if key.endswith('_url'):
                 del repo['owner'][key]
 
-    overview = {}
-    overview['num_repos_contributed_to'] = 0
-    overview['total_commits'] = 0
-    for repo_name, summary in summaries.items():
+        # count number of repositories with nonzero commits by the user.
         if summary['last_commit_date'] is not None:
             overview['num_repos_contributed_to'] += 1
+
+        # count total commits over all repos
         overview['total_commits'] += summary['contrib_dist'].get(username, 0)
 
 
     overview['timespan'] = 1 + 2014 - int(userdata['created_at'][:4]) # ie "2011-10-28T01:16:33Z" => 2011
 
     data['repos'] = repos
-    data['summaries'] = summaries
     data['overview'] = overview
 
     return data

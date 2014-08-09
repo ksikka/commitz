@@ -54,12 +54,15 @@
             </div>
             <div class="contributions">
             </div>
+            <table>
+            </table>
         </div>
         <script src="/static/Chart.min.js"></script>
         <script src="/static/underscore-min.js"></script>
         <script src="/static/jquery-1.11.1.min.js"></script>
         <script>
             var data = {{ jsondata | safe }};
+            data.repos = _.indexBy(data.repos, function(r) { return r.full_name; });
 
             // Get the context of the canvas element we want to select
             var ctx = document.getElementById("overview-repo-commits").getContext("2d");
@@ -88,37 +91,39 @@
                 _last_color_index %= colors.length;
                 return cArr;
             };
+            var getContribPercent = function(r) {
+                var totalCommits = 0;
+                _.each(r.summary.contrib_dist, function(numCommits) { totalCommits += numCommits; })
+                var commitFrac;
+                if (totalCommits === 0) {
+                    commitFrac = 0;
+                } else {
+                    commitFrac = (r.summary.contrib_dist[data.userdata.login] || 0) / totalCommits;
+                }
+                return Math.round(commitFrac * 100);
+            };
+            var getNumMyCommits = function(r) {
+                return r.summary.contrib_dist[data.userdata.login] || 0;
+            };
             var getRepoCommitsChartData = function(byContrib) {
                 var metricGetter;
                 var total = 0;
                 if (byContrib) {
-                    metricGetter = function(summary) {
-                        var totalCommits = 0;
-                        _.each(summary.contrib_dist, function(numCommits) { totalCommits += numCommits; })
-                        var commitFrac;
-                        if (totalCommits === 0) {
-                            commitFrac = 0;
-                        } else {
-                            commitFrac = (summary.contrib_dist[data.userdata.login] || 0) / totalCommits;
-                        }
-                        return commitFrac.toFixed(2) * 100;
-                    };
-                    _.each(data.summaries, function(s) { total += metricGetter(s);});
+                    metricGetter = getContribPercent;
+                    _.each(data.repos, function(r) { total += metricGetter(r);});
                 } else {
-                    metricGetter = function(summary) {
-                        return summary.contrib_dist[data.userdata.login] || 0;
-                    };
+                    metricGetter = getNumMyCommits;
                     total = data.overview.total_commits;
                 }
                 // sort it descending on number of commits
-                var sortedSummaryPairs = _.sortBy(_.pairs(data.summaries), function(kvpair) {return (metricGetter(kvpair[1])) * -1;});
+                var sortedSummaryPairs = _.sortBy(_.pairs(data.repos), function(kvpair) {return (metricGetter(kvpair[1])) * -1;});
                 var lastIndex;
 
                 var firstRepoTooSmall = _.find(sortedSummaryPairs, function(x) {
-                    var summary = x[1];
-                    var numCommits = metricGetter(summary);
+                    var repo = x[1];
+                    var numCommits = metricGetter(repo);
                     return (numCommits / total) < 0.01;
-                })
+                });
 
                 var shortSummaryPairs;
 
@@ -134,11 +139,11 @@
                 chart1Data = _.map(shortSummaryPairs, function(x) {
                     // console.log(x);
                     var repoName = x[0],
-                        summary = x[1];
+                        repo = x[1];
                     var y = nextColor();
                     var c1 = y[0],
                         c2 = y[1];
-                    return { value: metricGetter(summary),
+                    return { value: metricGetter(repo),
                              color: c1,
                              highlight: c2,
                              label: repoName
@@ -164,9 +169,15 @@
             var legendStr = myNewChart.generateLegend();
             $("#overview-repo-commits-list").html(legendStr);
 
+            // # of bins sould be sqrt number of repos
+            // range is 0 - 100
             var myNewChart2 = new Chart(ctx2).Pie(getRepoCommitsChartData(true));
             var legendStr2 = myNewChart2.generateLegend();
             $("#overview-repo-contribution-list").html(legendStr2);
+
+            _.each(data.repos, function(s, name) {
+                $('table').append('<tr><td>'+name+'</td><td>'+getNumMyCommits(s)+'</td><td>'+getContribPercent(s)+'</td></tr>');
+            });
 
         </script>
     </body>
