@@ -14,6 +14,7 @@ Dependencies
 
 Configuration
 -------------
+
 Create a JSON at the root of the repo called `config.json`:
 
     {
@@ -24,4 +25,12 @@ Create a JSON at the root of the repo called `config.json`:
         "DEBUG": true,
         "SECRET_KEY": "XXX"
     }
+
+How to run
+----------
+
+1. run couchdb in a terminal somewhere
+2. run python server.py
+3. add this to your /etc/hosts : `127.0.0.1	devserver.com`
+4. then go to devserver.com:5000 and you should see a page
 
