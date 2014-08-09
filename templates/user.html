@@ -30,6 +30,7 @@
         </div>
         <script src="/static/Chart.min.js"></script>
         <script src="/static/underscore-min.js"></script>
+        <script src="/static/jquery-1.11.1.min.js"></script>
         <script>
             var data = {{ jsondata | safe }};
 
@@ -51,15 +52,67 @@
                 ['#75706B','#A38F84'],
                 ['#D1D5D8','#CDCDCD']
             ];
-            var chart1Data = _.map(data.summaries, function(repoName, summary) {
-                return { value: summary.contrib_dist[data.userdata.login] || 0,
-                         color: null,
-                         highlight: null,
-                         label: repoName
-                };
-            });
-            // value, color, highlight, label
-            var myNewChart = new Chart(ctx).Pie(chart1Data);
+
+            var _last_color_index = 0;
+            var nextColor = function() {
+                var cArr = colors[_last_color_index];
+                _last_color_index += 1;
+                _last_color_index %= colors.length;
+                return cArr;
+            };
+            var getRepoCommitsChartData = function() {
+                // sort it descending on number of commits
+                var sortedSummaryPairs = _.sortBy(_.pairs(data.summaries), function(kvpair) {return (kvpair[1].contrib_dist[data.userdata.login] || 0) * -1;});
+                var lastIndex;
+
+                var firstRepoTooSmall = _.find(sortedSummaryPairs, function(x) {
+                    var summary = x[1];
+                    var numCommits = summary.contrib_dist[data.userdata.login];
+                    return (numCommits / data.overview.total_commits) < 0.01;
+                })
+
+                var shortSummaryPairs;
+
+                if (firstRepoTooSmall !== undefined) {
+                    lastIndex = _.indexOf(sortedSummaryPairs, firstRepoTooSmall);
+                    // take elements upto and excluding lastIndex
+                    remainingRepos = sortedSummaryPairs.length - lastIndex;
+                    shortSummaryPairs = _.first(sortedSummaryPairs, lastIndex);
+                } else {
+                    shortSummaryPairs = sortedSummaryPairs;
+                }
+
+                chart1Data = _.map(shortSummaryPairs, function(x) {
+                    // console.log(x);
+                    var repoName = x[0],
+                        summary = x[1];
+                    var y = nextColor();
+                    var c1 = y[0],
+                        c2 = y[1];
+                    console.log(summary.contrib_dist[data.userdata.login]);
+                    return { value: (summary.contrib_dist[data.userdata.login] || 0),
+                             color: c1,
+                             highlight: c2,
+                             label: repoName
+                    };
+                });
+
+                if (firstRepoTooSmall !== undefined) {
+                    var y = nextColor();
+                    var c1 = y[0],
+                        c2 = y[1];
+                    var remainingCommits = data.overview.total_commits - _.reduce(shortSummaryPairs, function(memo, pair) { return memo + pair[1].contrib_dist[data.userdata.login] }, 0);
+                    chart1Data.push({
+                             value: remainingCommits,
+                             color: c1,
+                             highlight: c2,
+                             label: String(remainingRepos) + ' other repos'
+                    });
+                }
+                return chart1Data;
+            }
+
+            var myNewChart = new Chart(ctx).Pie(getRepoCommitsChartData());
 
         </script>
     </body>
