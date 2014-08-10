@@ -52,8 +52,18 @@ def repo_summary(userdata, repo, repo_contributors, repo_commits):
             last_commit_date = commit['commit']['author']['date']
             break
 
+    num_my_commits = contrib_dist.get(username, 0)
+    num_total_commits = sum(contrib_dist.values())
+    if num_total_commits == 0:
+        contrib_percent = 0
+    else:
+        contrib_percent = round(float(num_my_commits) / num_total_commits * 100)
+
     data = {'contrib_dist': contrib_dist,
             'last_commit_date': last_commit_date,
+            'num_my_commits': num_my_commits,
+            'num_total_commits': num_total_commits,
+            'contrib_percent': contrib_percent
             }
 
     return data
@@ -71,6 +81,7 @@ def get_all_data(github, username):
     overview['total_commits'] = 0
 
     repos = github_data['repos']
+    filtered_repos = []
     for repo in repos:
         repo_name = repo['full_name']
         repo_contributors = github_data['stats'][repo_name]
@@ -78,6 +89,18 @@ def get_all_data(github, username):
         summary = repo_summary(userdata, repo, repo_contributors, repo_commits)
         repo['summary'] = summary
 
+        num_commits_mine = summary['contrib_dist'].get(username, 0)
+        if num_commits_mine == 0:
+            continue
+        else:
+            filtered_repos.append(repo)
+
+        # count number of repositories with nonzero commits by the user.
+        if summary['last_commit_date'] is not None:
+            overview['num_repos_contributed_to'] += 1
+
+        # count total commits over all repos
+        overview['total_commits'] += summary['contrib_dist'].get(username, 0)
         # delete all the url crap.
         for key in repo.keys():
             if key.endswith('_url'):
@@ -86,17 +109,13 @@ def get_all_data(github, username):
             if key.endswith('_url'):
                 del repo['owner'][key]
 
-        # count number of repositories with nonzero commits by the user.
-        if summary['last_commit_date'] is not None:
-            overview['num_repos_contributed_to'] += 1
-
-        # count total commits over all repos
-        overview['total_commits'] += summary['contrib_dist'].get(username, 0)
-
 
     overview['timespan'] = 1 + 2014 - int(userdata['created_at'][:4]) # ie "2011-10-28T01:16:33Z" => 2011
 
-    data['repos'] = repos
+    # sort descending chronological
+    filtered_repos.sort(reverse=True, key=lambda x: x['summary']['last_commit_date'])
+
+    data['repos'] = filtered_repos
     data['overview'] = overview
 
     return data

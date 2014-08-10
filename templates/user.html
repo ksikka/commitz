@@ -39,7 +39,7 @@
                 <!-- What are the repos do I have high contribution? -->
                 <!-- reposByContributionPercent -->
                 <div class="chart-container">
-                    <div id="overview-repo-contribution" style="width:500px; height:250px"></div>
+                    <div id="overview-repo-contribution" style="width:700px; height:450px"></div>
 
                     <div class="chart-sidekick">
                         <div id="overview-repo-contribution-list">
@@ -49,6 +49,10 @@
 
                 <!-- Timeline of my repos -->
                 <!-- reposByLastCommitDate -->
+                {% for repo in data.repos %}
+                <h1>{{ repo.full_name }}</h1>
+                <p>Last commit: {{ repo.summary.last_commit_date }}</p>
+                {% endfor %}
 
             </div>
             <div class="projects">
@@ -64,7 +68,6 @@
         <script src="/static/highcharts-more.js"></script>
         <script>
             var data = {{ jsondata | safe }};
-            data.repos = _.filter(data.repos, function(r) {return r.summary.last_commit_date != null;});
             data.repos = _.indexBy(data.repos, function(r) { return r.full_name; });
 
             // Get the context of the canvas element we want to select
@@ -97,22 +100,13 @@
 
             /* data computatation functions TODO move to backend*/
             var getTotalCommits = function(r) {
-                var totalCommits = 0;
-                _.each(r.summary.contrib_dist, function(numCommits) { totalCommits += numCommits; });
-                return totalCommits;
+                return r.summary.num_total_commits
             };
             var getNumMyCommits = function(r) {
-                return r.summary.contrib_dist[data.userdata.login] || 0;
+                return r.summary.num_my_commits;
             };
             var getContribPercent = function(r) {
-                var commitFrac;
-                var totalCommits = getTotalCommits(r);
-                if (totalCommits === 0) {
-                    commitFrac = 0;
-                } else {
-                    commitFrac = getNumMyCommits(r) / totalCommits;
-                }
-                return Math.round(commitFrac * 100);
+                return r.summary.contrib_percent;
             };
 
             /* reposByCommitCount */
