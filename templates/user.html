@@ -209,6 +209,9 @@
             $('table').append('<tr><td>'+centroids[0]+'</td><td>'+clusters[0].length+'</td></tr>');
             $('table').append('<tr><td>'+centroids[1]+'</td><td>'+clusters[1].length+'</td></tr>');
             $('table').append('<tr><td>'+centroids[2]+'</td><td>'+clusters[2].length+'</td></tr>');
+            _.each(data.repos, function(s, name) {
+                $('table').append('<tr><td>'+name+'</td><td>'+getNumMyCommits(s)+'</td><td>'+getContribPercent(s)+'</td></tr>');
+            });
             */
 
 
@@ -254,9 +257,6 @@
                 series: clusteredReposToBubbleData(centroids, clusters)
             });
 
-            _.each(data.repos, function(s, name) {
-                $('table').append('<tr><td>'+name+'</td><td>'+getNumMyCommits(s)+'</td><td>'+getContribPercent(s)+'</td></tr>');
-            });
 
         </script>
     </body>
