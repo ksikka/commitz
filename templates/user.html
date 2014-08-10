@@ -55,8 +55,6 @@
             </div>
             <div class="contributions">
             </div>
-            <table>
-            </table>
         </div>
         <script src="/static/Chart.min.js"></script>
         <script src="/static/underscore-min.js"></script>
@@ -206,9 +204,12 @@
             var x = kMeansRepoContribData(3);
             var centroids = x[0],
                 clusters = x[1];
+
+            /*
             $('table').append('<tr><td>'+centroids[0]+'</td><td>'+clusters[0].length+'</td></tr>');
             $('table').append('<tr><td>'+centroids[1]+'</td><td>'+clusters[1].length+'</td></tr>');
             $('table').append('<tr><td>'+centroids[2]+'</td><td>'+clusters[2].length+'</td></tr>');
+            */
 
 
             var clusteredReposToBubbleData = function(centroids, clusters) {
