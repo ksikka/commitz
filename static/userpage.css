@@ -26,3 +26,14 @@
 .chart-sidekick {
     display: inline-block;
 }
+
+.repo-detail {
+    display: inline-block;
+    margin: 20px;
+    padding: 10px;
+    width: 310px;
+}
+.repo-detail h1 {
+    font-size: 20pt;
+}
+

@@ -50,8 +50,13 @@
                 <!-- Timeline of my repos -->
                 <!-- reposByLastCommitDate -->
                 {% for repo in data.repos %}
-                <h1>{{ repo.full_name }}</h1>
-                <p>Last commit: {{ repo.summary.last_commit_date }}</p>
+                <div class="repo-detail">
+                    <h1>{{ repo.full_name }}</h1>
+                    <p>Last commit: {{ repo.summary.last_commit_date }}</p>
+                    <p>Number of commits mine: {{ repo.summary.num_my_commits }}</p>
+                    <p>Number of commits total: {{ repo.summary.num_total_commits }}</p>
+                    <p>Contribution percent: {{ repo.summary.contrib_percent }}</p>
+                </div>
                 {% endfor %}
 
             </div>
