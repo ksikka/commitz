@@ -44,9 +44,6 @@ function kmeans(points, k, distance, centroids, updateCentroidToAverageOfPoints)
             }
          }
 
-         if (!assigned.length) {
-            continue;
-         }
          var centroid = centroids[j];
 
          movement = updateCentroidToAverageOfPoints(centroid, assigned);
