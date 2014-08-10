@@ -250,8 +250,13 @@
                         tooltip: {
                             pointFormat: '<span style="font-size: 10px">{point.name}</span><br/>',
                         },
-                    }
+                    },
                 },
+	        xAxis: {
+		    minRange:100,
+                    min:-10,
+		    max:110
+	        },
 
                 series: clusteredReposToBubbleData(centroids, clusters)
             });
