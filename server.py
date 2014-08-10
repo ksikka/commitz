@@ -76,7 +76,7 @@ def login():
     r = redirect_if_logged_in()
     if r:
         return r
-    return github.authorize()
+    return github.authorize('repo')
 
 
 """
