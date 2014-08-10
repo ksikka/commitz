@@ -40,6 +40,10 @@ class GitHubAgent(GitHub):
 
         try:
             data = self.get('repos/%s/%s/stats/contributors' % (owner_username, repo_name))
+            if hasattr(data,'status_code') and data.status_code == 204:
+                # this means that the repo exists in GH but is not initialized with a git repo.
+                # this will eventually be filtered out.
+                data = []
         except GitHubError, e:
             if '404: Not Found' in str(e):
                 data = []
@@ -58,7 +62,9 @@ class GitHubAgent(GitHub):
         try:
             data = self.get('repos/%s/%s/commits' % (owner_username, repo_name))
         except GitHubError, e:
-            if '404: Not Found' in str(e):
+            if '409: Git Repository is empty' in str(e):
+                data = []
+            elif '404: Not Found' in str(e):
                 data = []
             else:
                 raise
